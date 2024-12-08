@@ -1,0 +1,90 @@
+#!/bin/bash
+
+init_dir="."
+
+usage() {
+	echo "Usage: $0 [--init <directory>] [--test]"
+	echo "test framework for executables"
+	echo ""
+	echo "  --init <directory>  Initialize testsh structure"
+	echo "  --test              Run tests in ./tests/bin"
+	echo ""
+	echo "JD297 $0 source code <https://github.com/jd297/testsh>"
+	exit 1
+}
+
+init() {
+	mkdir -p $init_dir/tests/{src,bin,out}
+	touch $init_dir/tests/{bin,out}/.gitkeep
+
+	echo > $init_dir/tests/Makefile
+
+	echo "bin/*" >> $init_dir/tests/.gitignore
+	echo "!bin/.gitkeep" >> $init_dir/tests/.gitignore
+	echo "out/*" >> $init_dir/tests/.gitignore
+	echo "!out/.gitkeep" >> $init_dir/tests/.gitignore
+}
+
+test() {
+	## Return Code Method Tests
+	returntests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "test_return")
+
+	for returntest in $returntests
+	do
+		testbin=$returntest; printf "Running test: %s: " $testbin; ./tests/bin/$testbin; res=$?; ./tests/bin/expc_$testbin; expc=$?; if [ $res -ne $expc ]; then printf "[FAILED]: expected return %d: was: %d\n" $expc $res; else printf "[OK]\n"; fi
+	done
+
+	## Diff Method Tests
+	difftests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "test_diff")
+
+	for difftest in $difftests
+	do
+		testbin=$difftest; printf "Running test: %s: " $testbin; ./tests/bin/$testbin 1> tests/out/$testbin.stdout; ./tests/bin/expc_$testbin 1> tests/out/expc_$testbin.stdout ; diff tests/out/expc_$testbin.stdout tests/out/$testbin.stdout; res=$?; expc=0; if [ $res -ne $expc ]; then printf "%s: [FAILED]: expected return %d: was: %d\n" $testbin $expc $res; else printf "[OK]\n"; fi
+	done
+}
+
+OPTIONS=$(getopt -o h --long init:,test -- "$@")
+if [ $? -ne 0 ]; then
+	usage
+fi
+
+eval set -- "$OPTIONS"
+
+while true; do
+	case "$1" in
+	--init)
+		init_flag=true
+		init_dir="$2"
+		shift 2
+		;;
+	--test)
+		test_flag=true
+		shift
+		;;
+	--)
+		shift
+		break
+		;;
+	*)
+		usage
+		;;
+	esac
+done
+
+if [ "$init_flag" = true ]; then
+	if [ -d "$init_dir/tests" ]; then
+		echo "$0: \"$init_dir\": structure already exists"
+		exit 1
+	fi
+
+	init
+fi
+
+if [ "$test_flag" = true ]; then
+	if [ ! -d "tests" ]; then
+		echo "$0: \"./tests\" No such file or directory"
+		exit 1
+	fi
+
+	test
+fi
