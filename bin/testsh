@@ -1,5 +1,14 @@
 #!/bin/bash
 
+CYAN='\033[36m'
+GREEN='\033[32m'
+RED='\033[31m'
+RESET='\033[0m'
+
+INFO=$CYAN
+SUCCESS=$GREEN
+FAILURE=$RED
+
 init_dir="."
 
 usage() {
@@ -25,15 +34,31 @@ init() {
 	echo "!out/.gitkeep" >> $init_dir/tests/.gitignore
 }
 
+test_print_ok() {
+	 printf "${SUCCESS}[OK]${RESET}\n"
+}
+
+test_print_failed() {
+	printf "${FAILURE}[FAILED]${RESET}: "
+	local format_string="$1"
+
+	shift
+	printf "$format_string" "$@"
+}
+
+test_print_info_running_test() {
+	printf "${INFO}Running test${RESET}: %s: " $1
+}
+
 test() {
 	## Standalone
 
 	### Assert Tests
-	standaloneasserttests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_standalone_assert")
+	standaloneasserttests=$(find tests/bin/ -type f -exec basename "{}" \; | grep "^test_standalone_assert")
 
 	for standaloneasserttest in $standaloneasserttests
 	do
-		testbin=$standaloneasserttest; printf "Running test: %s: " $testbin; ./tests/bin/$testbin; res=$?; expc=0; if [ $res -ne $expc ]; then printf "[FAILED]: expected return %d: was: %d\n" $expc $res; else printf "[OK]\n"; fi
+		testbin=$standaloneasserttest; test_print_info_running_test $testbin; ./tests/bin/$testbin; res=$?; expc=0; if [ $res -ne $expc ]; then test_print_failed "expected return %d: was: %d\n" $expc $res; else test_print_ok; fi
 	done
 
 	## Return Code Method Tests
@@ -41,7 +66,7 @@ test() {
 
 	for returntest in $returntests
 	do
-		testbin=$returntest; printf "Running test: %s: " $testbin; ./tests/bin/$testbin; res=$?; ./tests/bin/expc_$testbin; expc=$?; if [ $res -ne $expc ]; then printf "[FAILED]: expected return %d: was: %d\n" $expc $res; else printf "[OK]\n"; fi
+		testbin=$returntest; test_print_info_running_test $testbin; ./tests/bin/$testbin; res=$?; ./tests/bin/expc_$testbin; expc=$?; if [ $res -ne $expc ]; then test_print_failed "[FAILED]: expected return %d: was: %d\n" $expc $res; else test_print_ok; fi
 	done
 
 	## Diff Method Tests
@@ -49,7 +74,7 @@ test() {
 
 	for difftest in $difftests
 	do
-		testbin=$difftest; printf "Running test: %s: " $testbin; ./tests/bin/$testbin 1> tests/out/$testbin.stdout; ./tests/bin/expc_$testbin 1> tests/out/expc_$testbin.stdout ; diff tests/out/expc_$testbin.stdout tests/out/$testbin.stdout; res=$?; expc=0; if [ $res -ne $expc ]; then printf "%s: [FAILED]: expected return %d: was: %d\n" $testbin $expc $res; else printf "[OK]\n"; fi
+		testbin=$difftest; test_print_info_running_test $testbin; ./tests/bin/$testbin 1> tests/out/$testbin.stdout; ./tests/bin/expc_$testbin 1> tests/out/expc_$testbin.stdout ; diff tests/out/expc_$testbin.stdout tests/out/$testbin.stdout; res=$?; expc=0; if [ $res -ne $expc ]; then test_print_failed "%s: [FAILED]: expected return %d: was: %d\n" $testbin $expc $res; else test_print_ok; fi
 	done
 }
 
