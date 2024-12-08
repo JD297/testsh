@@ -13,7 +13,7 @@ init_dir="."
 
 usage() {
 	echo "Usage: $0 [--init <directory>] [--test]"
-	echo "test framework for executables"
+	echo "test suite for arbitrary programs"
 	echo ""
 	echo "  --init <directory>  Initialize testsh structure"
 	echo "  --test              Run tests in ./tests/bin"
@@ -61,8 +61,10 @@ test() {
 		testbin=$standaloneasserttest; test_print_info_running_test $testbin; ./tests/bin/$testbin; res=$?; expc=0; if [ $res -ne $expc ]; then test_print_failed "expected return %d: was: %d\n" $expc $res; else test_print_ok; fi
 	done
 
+	## Copycat
+
 	## Return Code Method Tests
-	returntests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_return")
+	returntests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_copycat_return")
 
 	for returntest in $returntests
 	do
@@ -70,7 +72,7 @@ test() {
 	done
 
 	## Diff Method Tests
-	difftests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_diff")
+	difftests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_copycat_diff")
 
 	for difftest in $difftests
 	do
