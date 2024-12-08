@@ -29,7 +29,7 @@ test() {
 	## Standalone
 
 	### Assert Tests
-	standaloneasserttests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "test_standalone_assert")
+	standaloneasserttests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_standalone_assert")
 
 	for standaloneasserttest in $standaloneasserttests
 	do
@@ -37,7 +37,7 @@ test() {
 	done
 
 	## Return Code Method Tests
-	returntests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "test_return")
+	returntests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_return")
 
 	for returntest in $returntests
 	do
@@ -45,7 +45,7 @@ test() {
 	done
 
 	## Diff Method Tests
-	difftests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "test_diff")
+	difftests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_diff")
 
 	for difftest in $difftests
 	do
