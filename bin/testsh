@@ -64,7 +64,7 @@ test() {
 	## Copycat
 
 	## Return Code Method Tests
-	returntests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_copycat_return")
+	returntests=$(find tests/bin/ -type f -exec basename "{}" \; | grep "^test_copycat_return")
 
 	for returntest in $returntests
 	do
@@ -72,7 +72,7 @@ test() {
 	done
 
 	## Diff Method Tests
-	difftests=$(find tests/src/ -type f -exec basename "{}" .c \; | grep "^test_copycat_diff")
+	difftests=$(find tests/bin/ -type f -exec basename "{}" \; | grep "^test_copycat_diff")
 
 	for difftest in $difftests
 	do
